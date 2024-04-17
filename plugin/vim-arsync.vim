@@ -12,7 +12,7 @@ function! LoadConf()
         let l:conf_options = readfile('.vim-arsync')
         for i in l:conf_options
             let l:var_name = substitute(i[0:stridx(i, ' ')], '^\s*\(.\{-}\)\s*$', '\1', '')
-            if l:var_name == 'ignore_path'
+            if l:var_name == 'ignore_path' || l:var_name == 'include_path'
                 let l:var_value = eval(substitute(i[stridx(i, ' '):], '^\s*\(.\{-}\)\s*$', '\1', ''))
                 " echo substitute(i[stridx(i, ' '):], '^\s*\(.\{-}\)\s*$', '\1', '')
             elseif l:var_name == 'remote_passwd'
@@ -23,6 +23,12 @@ function! LoadConf()
             endif
             let l:conf_dict[l:var_name] = l:var_value
         endfor
+    endif
+    if has_key(l:conf_dict, "auto_sync_up") && has_key(l:conf_dict, "auto_sync_down")
+        if l:conf_dict['auto_sync_up'] == 1 && l:conf_dict['auto_sync_down'] == 1
+            echoerr 'You cannot have both auto_sync_up and auto_sync_down enabled at the same time. Aborting...'
+            return
+        endif
     endif
     if !has_key(l:conf_dict, "local_path")
         let l:conf_dict['local_path'] = getcwd()
@@ -100,6 +106,11 @@ function! ARsync(direction)
         if has_key(l:conf_dict, 'ignore_path')
             for file in l:conf_dict['ignore_path']
                 let l:cmd = l:cmd + ['--exclude', file]
+            endfor
+        endif
+        if has_key(l:conf_dict, 'include_path')
+            for file in l:conf_dict['include_path']
+                let l:cmd = l:cmd + ['--include', file]
             endfor
         endif
         if has_key(l:conf_dict, 'ignore_dotfiles')
