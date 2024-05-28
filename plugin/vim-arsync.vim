@@ -52,12 +52,12 @@ function! JobHandler(job_id, data, event_type)
     " redraw | echom a:job_id . ' ' . a:event_type
     if a:event_type == 'stdout' || a:event_type == 'stderr'
         " redraw | echom string(a:data)
-        if has_key(getqflist({'id' : g:qfid}), 'id')
-            call setqflist([], 'a', {'id' : g:qfid, 'lines' : a:data})
-        endif
+        " if has_key(getqflist({'id' : g:qfid}), 'id')
+        "     call setqflist([], 'a', {'id' : g:qfid, 'lines' : a:data})
+        " endif
     elseif a:event_type == 'exit'
         if a:data != 0
-            copen
+            echo "vim-arsync failed."
         endif
         if a:data == 0
             echo "vim-arsync success."
