@@ -131,9 +131,9 @@ function! ARsync(direction)
             let l:cmd = ['sshpass', '-p', sshpass_passwd] + l:cmd
         endif
 
-        if g:latest_upload_job_id != -1
+        if g:vim_arsync_latest_upload_job_id != -1
             try
-                call async#job#stop(g:latest_upload_job_id)
+                call async#job#stop(g:vim_arsync_latest_upload_job_id)
             catch
                 " Job might have completed already
             endtry
