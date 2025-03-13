@@ -4,6 +4,9 @@
 " Date: 08/2019
 " License: MIT
 
+let g:vim_arsync_latest_upload_job_id = -1
+let g:vim_arsync_post_upload_script = ''
+
 function! LoadConf()
     let l:conf_dict = {}
     let l:file_exists = filereadable('.vim-arsync')
@@ -45,6 +48,9 @@ function! LoadConf()
     if !has_key(l:conf_dict, "remote_options")
         let l:conf_dict['remote_options'] = "-vazre"
     endif
+    if has_key(l:conf_dict, "post_upload_script")
+        let g:vim_arsync_post_upload_script = expand(l:conf_dict['post_upload_script'])
+    endif
     return l:conf_dict
 endfunction
 
@@ -61,6 +67,9 @@ function! JobHandler(job_id, data, event_type)
         endif
         if a:data == 0
             echo "vim-arsync success."
+            if g:vim_arsync_post_upload_script != ''
+                execute "!bash " . g:vim_arsync_post_upload_script
+            endif
         endif
         " echom string(a:data)
     endif
@@ -122,11 +131,19 @@ function! ARsync(direction)
             let l:cmd = ['sshpass', '-p', sshpass_passwd] + l:cmd
         endif
 
+        if g:latest_upload_job_id != -1
+            try
+                call async#job#stop(g:latest_upload_job_id)
+            catch
+                " Job might have completed already
+            endtry
+        endif
+
         " create qf for job
         call setqflist([], ' ', {'title' : 'vim-arsync'})
         let g:qfid = getqflist({'id' : 0}).id
         " redraw | echom join(cmd)
-        let l:job_id = async#job#start(cmd, {
+        let g:vim_arsync_latest_upload_job_id = async#job#start(cmd, {
                     \ 'on_stdout': function('JobHandler'),
                     \ 'on_stderr': function('JobHandler'),
                     \ 'on_exit': function('JobHandler'),
