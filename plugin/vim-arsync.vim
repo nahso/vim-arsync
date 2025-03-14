@@ -6,6 +6,7 @@
 
 let g:vim_arsync_latest_upload_job_id = -1
 let g:vim_arsync_post_upload_script = ''
+let g:vim_arsync_need_invoke = 0
 
 function! LoadConf()
     let l:conf_dict = {}
@@ -67,8 +68,9 @@ function! JobHandler(job_id, data, event_type)
         endif
         if a:data == 0
             echo "vim-arsync success."
-            if g:vim_arsync_post_upload_script != ''
+            if g:vim_arsync_post_upload_script != '' && g:vim_arsync_need_invoke == 1
                 call system('bash ' . shellescape(g:vim_arsync_post_upload_script) . ' &')
+                g:vim_arsync_need_invoke = 0
             endif
         endif
         " echom string(a:data)
