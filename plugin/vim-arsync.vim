@@ -70,7 +70,7 @@ function! JobHandler(job_id, data, event_type)
             echo "vim-arsync success."
             if g:vim_arsync_post_upload_script != '' && g:vim_arsync_need_invoke == 1
                 call system('bash ' . shellescape(g:vim_arsync_post_upload_script) . ' &')
-                g:vim_arsync_need_invoke = 0
+                let g:vim_arsync_need_invoke = 0
             endif
         endif
         " echom string(a:data)
