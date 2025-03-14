@@ -7,6 +7,18 @@
 let g:vim_arsync_latest_upload_job_id = -1
 let g:vim_arsync_post_upload_script = ''
 let g:vim_arsync_need_invoke = 0
+let g:vim_arsync_job_running = 0
+
+function! g:PostArsyncScript()
+  if g:vim_arsync_job_running
+    let g:vim_arsync_need_invoke = 1
+else
+    if g:vim_arsync_post_upload_script != ''
+        call system('bash ' . shellescape(g:vim_arsync_post_upload_script) . ' &')
+        let g:vim_arsync_need_invoke = 0
+    endif
+  endif
+endfunction
 
 function! LoadConf()
     let l:conf_dict = {}
@@ -56,18 +68,13 @@ function! LoadConf()
 endfunction
 
 function! JobHandler(job_id, data, event_type)
-    " redraw | echom a:job_id . ' ' . a:event_type
-    if a:event_type == 'stdout' || a:event_type == 'stderr'
-        " redraw | echom string(a:data)
-        " if has_key(getqflist({'id' : g:qfid}), 'id')
-        "     call setqflist([], 'a', {'id' : g:qfid, 'lines' : a:data})
-        " endif
-    elseif a:event_type == 'exit'
+    if a:event_type == 'exit'
         if a:data != 0
             echo "vim-arsync failed."
         endif
         if a:data == 0
             echo "vim-arsync success."
+            let g:vim_arsync_job_running = 0
             if g:vim_arsync_post_upload_script != '' && g:vim_arsync_need_invoke == 1
                 call system('bash ' . shellescape(g:vim_arsync_post_upload_script) . ' &')
                 let g:vim_arsync_need_invoke = 0
@@ -145,6 +152,7 @@ function! ARsync(direction)
         call setqflist([], ' ', {'title' : 'vim-arsync'})
         let g:qfid = getqflist({'id' : 0}).id
         " redraw | echom join(cmd)
+        let g:vim_arsync_job_running = 1
         let g:vim_arsync_latest_upload_job_id = async#job#start(cmd, {
                     \ 'on_stdout': function('JobHandler'),
                     \ 'on_stderr': function('JobHandler'),
