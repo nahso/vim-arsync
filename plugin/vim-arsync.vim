@@ -16,6 +16,7 @@ else
     if g:vim_arsync_post_upload_script != ''
         call system('bash ' . shellescape(g:vim_arsync_post_upload_script) . ' &')
         let g:vim_arsync_need_invoke = 0
+        echo "vim-arsync post upload script invoked."
     endif
   endif
 endfunction
@@ -78,6 +79,7 @@ function! JobHandler(job_id, data, event_type)
             if g:vim_arsync_post_upload_script != '' && g:vim_arsync_need_invoke == 1
                 call system('bash ' . shellescape(g:vim_arsync_post_upload_script) . ' &')
                 let g:vim_arsync_need_invoke = 0
+                echo "vim-arsync post upload script invoked."
             endif
         endif
         " echom string(a:data)
